@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequestMapping("/films")
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
     private int filmId = 1;
@@ -51,4 +52,5 @@ public class FilmController {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
     }
+
 }
