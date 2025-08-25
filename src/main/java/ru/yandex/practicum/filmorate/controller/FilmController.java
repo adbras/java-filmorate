@@ -4,27 +4,22 @@ import jakarta.validation.ValidationException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/films")
 public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
     private int filmId = 1;
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            film.setName("common");
-        }
-
         validateReleaseDate(film);
         film.setId(filmId++);
         films.put(film.getId(), film);
