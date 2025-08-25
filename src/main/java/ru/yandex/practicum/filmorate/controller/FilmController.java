@@ -21,6 +21,10 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film film) {
+        if (film.getName() == null || film.getName().isBlank()) {
+            film.setName("common");
+        }
+
         validateReleaseDate(film);
         film.setId(filmId++);
         films.put(film.getId(), film);
