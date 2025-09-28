@@ -1,17 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
-
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import jakarta.validation.Valid;
-
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -58,5 +51,4 @@ public class FilmController {
     public List<Film> popular(@RequestParam(name = "count", defaultValue = "10") int count) {
         return filmService.getPopular(count);
     }
-
 }
