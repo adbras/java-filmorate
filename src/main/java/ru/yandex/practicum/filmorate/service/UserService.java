@@ -6,10 +6,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -40,8 +37,8 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
-    // --- Друзья (примитивная реализация через Set<Integer> в рантайме) ---
-    private final java.util.Map<Integer, Set<Integer>> friends = new java.util.HashMap<>();
+    private final Map<Integer, Set<Integer>> friends = new HashMap<>();
+
 
     public void addFriend(int id, int friendId) {
         ensureExists(id);
