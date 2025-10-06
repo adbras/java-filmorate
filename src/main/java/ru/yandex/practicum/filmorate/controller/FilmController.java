@@ -1,40 +1,39 @@
 package ru.yandex.practicum.filmorate.controller;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import jakarta.validation.Valid;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.service.FilmService;
+
+import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/films")
+@Validated
 public class FilmController {
     private final FilmService filmService;
 
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
+
+    @GetMapping
+    public Collection<Film> getFilms() {
+        return filmService.getAllFilms();
+    }
+
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Film create(@Valid @RequestBody Film film) {
-        return filmService.create(film);
+    public Film create(@Validated @RequestBody Film film) {
+        return filmService.addFilm(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
-    }
-
-    @GetMapping
-    public List<Film> getAll() {
-        return filmService.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public Film getById(@PathVariable int id) {
-        return filmService.getById(id);
+        return filmService.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -48,7 +47,12 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> popular(@RequestParam(name = "count", defaultValue = "10") int count) {
-        return filmService.getPopular(count);
+    public List<Film> popular(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable int id) {
+        return filmService.getFilmById(id);
     }
 }
