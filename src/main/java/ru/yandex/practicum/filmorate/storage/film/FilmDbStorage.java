@@ -315,7 +315,7 @@ public class FilmDbStorage implements FilmStorage {
         try {
             jdbc.batchUpdate(sql, batchArgs);
         } catch (DataAccessException e) {
-            throw new NotFoundException("Ошибка вставки жанров — возможно, жанр не существует");
+            throw new NotFoundException("Ошибка вставки жанров");
         }
     }
 }
