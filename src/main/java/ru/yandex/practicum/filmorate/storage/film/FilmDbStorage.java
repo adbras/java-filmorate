@@ -33,9 +33,9 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film addFilm(Film film) {
         String query = """
-        INSERT INTO movies (name, description, release_date, duration, rating_id)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+                    INSERT INTO movies (name, description, release_date, duration, rating_id)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -51,7 +51,8 @@ public class FilmDbStorage implements FilmStorage {
 
         Number key = keyHolder.getKey();
         if (key == null) {
-            throw new DataAccessException("Не удалось получить id фильма после вставки") {};
+            throw new DataAccessException("Не удалось получить id фильма после вставки") {
+            };
         }
         int filmId = key.intValue();
 
@@ -76,10 +77,10 @@ public class FilmDbStorage implements FilmStorage {
         Integer ratingId = getRatingIdIfExists(film.getMpa());
 
         String updateSql = """
-        UPDATE movies
-        SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ?
-        WHERE movie_id = ?
-    """;
+                    UPDATE movies
+                    SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ?
+                    WHERE movie_id = ?
+                """;
 
         jdbc.update(updateSql,
                 film.getName(),
@@ -101,27 +102,27 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film getFilmById(int id) {
         String query = """
-            SELECT
-                m.movie_id,
-                m.name,
-                m.description,
-                m.release_date,
-                m.duration,
-                r.rating_id,
-                r.name AS rating_name
-            FROM movies m
-            LEFT JOIN rating r ON m.rating_id = r.rating_id
-            WHERE m.movie_id = ?
-        """;
+                    SELECT
+                        m.movie_id,
+                        m.name,
+                        m.description,
+                        m.release_date,
+                        m.duration,
+                        r.rating_id,
+                        r.name AS rating_name
+                    FROM movies m
+                    LEFT JOIN rating r ON m.rating_id = r.rating_id
+                    WHERE m.movie_id = ?
+                """;
         Film film = jdbc.queryForObject(query, mapper, id);
 
         String genreSql = """
-            SELECT g.genre_id, g.name
-            FROM movie_genre mg
-            JOIN genres g ON mg.genre_id = g.genre_id
-            WHERE mg.movie_id = ?
-            ORDER by g.genre_id
-        """;
+                    SELECT g.genre_id, g.name
+                    FROM movie_genre mg
+                    JOIN genres g ON mg.genre_id = g.genre_id
+                    WHERE mg.movie_id = ?
+                    ORDER by g.genre_id
+                """;
 
         jdbc.query(genreSql, (rs) -> {
             if (film != null) {
@@ -149,28 +150,28 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public ArrayList<Film> getAllFilms() {
         String query = """
-            SELECT
-                m.movie_id,
-                m.name,
-                m.description,
-                m.release_date,
-                m.duration,
-                r.rating_id,
-                r.name AS rating_name
-            FROM movies m
-            LEFT JOIN rating r ON m.rating_id = r.rating_id
-        """;
+                    SELECT
+                        m.movie_id,
+                        m.name,
+                        m.description,
+                        m.release_date,
+                        m.duration,
+                        r.rating_id,
+                        r.name AS rating_name
+                    FROM movies m
+                    LEFT JOIN rating r ON m.rating_id = r.rating_id
+                """;
         ArrayList<Film> films = new ArrayList<>(jdbc.query(query, mapper));
 
         Map<Integer, Film> filmMap = films.stream()
                 .collect(Collectors.toMap(Film::getId, Function.identity()));
 
         String genreSql = """
-            SELECT mg.movie_id, g.genre_id, g.name
-            FROM movie_genre mg
-            JOIN genres g ON mg.genre_id = g.genre_id
-            ORDER BY g.genre_id
-        """;
+                    SELECT mg.movie_id, g.genre_id, g.name
+                    FROM movie_genre mg
+                    JOIN genres g ON mg.genre_id = g.genre_id
+                    ORDER BY g.genre_id
+                """;
 
         jdbc.query(genreSql, (rs) -> {
             int movieId = rs.getInt("movie_id");
@@ -235,15 +236,15 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         String sql = """
-        SELECT m.movie_id, m.name, m.description, m.release_date, m.duration, r.rating_id, r.name AS rating_name,
-               COUNT(l.user_id) AS likes_count
-        FROM movies m
-        LEFT JOIN rating r ON m.rating_id = r.rating_id
-        LEFT JOIN likes l ON m.movie_id = l.movie_id
-        GROUP BY m.movie_id, r.rating_id, r.name
-        ORDER BY likes_count DESC
-        LIMIT ?
-    """;
+                    SELECT m.movie_id, m.name, m.description, m.release_date, m.duration, r.rating_id, r.name AS rating_name,
+                           COUNT(l.user_id) AS likes_count
+                    FROM movies m
+                    LEFT JOIN rating r ON m.rating_id = r.rating_id
+                    LEFT JOIN likes l ON m.movie_id = l.movie_id
+                    GROUP BY m.movie_id, r.rating_id, r.name
+                    ORDER BY likes_count DESC
+                    LIMIT ?
+                """;
 
         List<Film> films = jdbc.query(sql, mapper, count);
 
@@ -309,10 +310,12 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)";
         List<Object[]> batchArgs = genres.stream()
                 .sorted(Comparator.comparing(Genre::getId))
-                .map(genre -> new Object[]{movieId, getGenreIdIfExists(genre)})
+                .map(genre -> new Object[]{movieId, genre.getId()})
                 .collect(Collectors.toList());
-
-        jdbc.batchUpdate(sql, batchArgs);
+        try {
+            jdbc.batchUpdate(sql, batchArgs);
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Ошибка вставки жанров — возможно, жанр не существует");
+        }
     }
-
 }
